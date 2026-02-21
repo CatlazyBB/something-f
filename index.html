@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Birthday Gift Card</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a0f;
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Stars / sparkles background */
+    .bg {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      animation: twinkle var(--dur, 3s) ease-in-out infinite var(--delay, 0s);
+      opacity: 0;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: var(--op, 0.8); transform: scale(1); }
+    }
+
+    /* Confetti */
+    .confetti-wrap {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      top: -10px;
+      animation: fall var(--fall-dur, 4s) ease-in var(--fall-delay, 0s) infinite;
+      opacity: 0;
+    }
+
+    @keyframes fall {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(105vh) rotate(720deg); }
+    }
+
+    /* ===== CARD SCENE ===== */
+    .scene {
+      perspective: 1400px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .card {
+      width: 680px;
+      height: 420px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .card.open {
+      transform: rotateY(0deg);
+    }
+
+    /* LEFT HALF (front cover) */
+    .cover {
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      left: 50%;
+      transform-origin: left center;
+      transform-style: preserve-3d;
+      transition: transform 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 2;
+    }
+
+    .card.open .cover {
+      transform: rotateY(-160deg);
+    }
+
+    .cover-front, .cover-back {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+    }
+
+    .cover-front {
+      background: linear-gradient(135deg, #1a0533 0%, #2d0a5e 50%, #1a0533 100%);
+      border-radius: 0 16px 16px 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-left: none;
+    }
+
+    /* Gold shimmer border */
+    .cover-front::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        linear-gradient(to bottom, rgba(255,215,0,0.15), transparent 30%, transparent 70%, rgba(255,215,0,0.15)),
+        linear-gradient(to right, transparent, rgba(255,215,0,0.08), transparent);
+      pointer-events: none;
+    }
+
+    .cover-front::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, #ffd700, #f0a500, #ffd700, transparent);
+    }
+
+    .cover-title {
+      font-family: 'Playfair Display', serif;
+      color: #ffd700;
+      font-size: 13px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .cover-main {
+      font-family: 'Playfair Display', serif;
+      font-size: 38px;
+      color: #fff;
+      text-align: center;
+      line-height: 1.2;
+      text-shadow: 0 0 40px rgba(200,150,255,0.5);
+    }
+
+    .cover-main em {
+      font-style: italic;
+      color: #f0b8ff;
+    }
+
+    .cake-icon {
+      font-size: 52px;
+      filter: drop-shadow(0 0 20px rgba(255,180,0,0.6));
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .cover-hint {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .cover-back {
+      transform: rotateY(180deg);
+      background: linear-gradient(135deg, #f5f0ff 0%, #ede8ff 100%);
+      border-radius: 0 16px 16px 0;
+    }
+
+    /* RIGHT HALF (inside) */
+    .inside {
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      left: 50%;
+      background: linear-gradient(135deg, #f5f0ff 0%, #fdf8ff 60%, #fff5fb 100%);
+      border-radius: 0 16px 16px 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 30px;
+    }
+
+    .inside::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 20% 20%, rgba(200,150,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255,180,200,0.1) 0%, transparent 50%);
+    }
+
+    .inside-badge {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #a076d9;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+    }
+
+    .inside-greeting {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      color: #2a1a4a;
+      text-align: center;
+      line-height: 1.9;
+      font-style: italic;
+    }
+
+    .divider {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #c896ff, transparent);
+    }
+
+    .inside-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      color: #4a1a8a;
+      text-align: center;
+    }
+
+    .inside-emoji {
+      font-size: 28px;
+      letter-spacing: 6px;
+    }
+
+    .inside-footer {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #bba0e0;
+      text-transform: uppercase;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* LEFT SPINE (base) */
+    .spine {
+      position: absolute;
+      width: 50%;
+      height: 100%;
+      left: 0;
+      background: linear-gradient(to right, #120025, #1d0040);
+      border-radius: 16px 0 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spine::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, rgba(255,215,0,0.4), rgba(255,215,0,0.4), transparent);
+    }
+
+    .spine-text {
+      font-family: 'Playfair Display', serif;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+    }
+
+    /* CTA button */
+    .btn {
+      position: absolute;
+      bottom: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: transparent;
+      border: 1px solid rgba(255,215,0,0.4);
+      color: rgba(255,215,0,0.8);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      padding: 12px 28px;
+      cursor: pointer;
+      border-radius: 100px;
+      transition: all 0.3s;
+    }
+
+    .btn:hover {
+      background: rgba(255,215,0,0.1);
+      border-color: #ffd700;
+      color: #ffd700;
+    }
+
+    /* Glow effect on card hover */
+    .scene:hover .card:not(.open) {
+      filter: drop-shadow(0 0 40px rgba(180,100,255,0.3));
+    }
+
+    /* Ribbon */
+    .ribbon {
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+
+    .card.open .ribbon {
+      opacity: 0;
+    }
+
+    .ribbon svg {
+      width: 80px;
+      filter: drop-shadow(0 4px 12px rgba(255,215,0,0.4));
+    }
+  </style>
+</head>
+<body>
+
+<!-- Starry background -->
+<div class="bg" id="bg"></div>
+
+<!-- Confetti -->
+<div class="confetti-wrap" id="confetti"></div>
+
+<div class="scene">
+  <div class="card" id="card">
+
+    <!-- Spine / base left -->
+    <div class="spine">
+      <span class="spine-text">A Special Day · Celebrate</span>
+    </div>
+
+    <!-- Inside right (always visible behind cover) -->
+    <div class="inside">
+      <span class="inside-badge">✦ With Love ✦</span>
+      <div class="divider"></div>
+      <p class="inside-greeting">
+        May your day be as bright<br/>
+        as the stars in the sky,<br/>
+        and your heart as full<br/>
+        as your smile.
+      </p>
+      <div class="divider"></div>
+      <div class="inside-name">Happy Birthday! 🎂</div>
+      <div class="inside-emoji">🎁 🥂 🌸</div>
+      <div class="inside-footer">Wishing you the world</div>
+    </div>
+
+    <!-- Cover (flips open) -->
+    <div class="cover" id="cover">
+      <div class="cover-front">
+        <span class="cover-title">✦ A Gift For You ✦</span>
+        <div class="cake-icon">🎂</div>
+        <div class="cover-main">
+          Happy<br/><em>Birthday</em>
+        </div>
+        <span class="cover-hint">Tap to open →</span>
+      </div>
+      <div class="cover-back"></div>
+    </div>
+
+  </div>
+
+  <button class="btn" id="btn" onclick="toggleCard()">Open Card</button>
+</div>
+
+<script>
+  // Stars
+  const bg = document.getElementById('bg');
+  for (let i = 0; i < 120; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 3 + 1;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*100}%;
+      --dur:${(Math.random()*4+2).toFixed(1)}s;
+      --delay:-${(Math.random()*6).toFixed(1)}s;
+      --op:${(Math.random()*0.6+0.2).toFixed(2)};
+    `;
+    bg.appendChild(s);
+  }
+
+  // Confetti
+  const colors = ['#ffd700','#ff6eb4','#a259ff','#5cffb1','#ff9d4d','#60d4ff'];
+  const cw = document.getElementById('confetti');
+
+  function spawnConfetti() {
+    for (let i = 0; i < 60; i++) {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      d.style.cssText = `
+        left:${Math.random()*100}%;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        width:${Math.random()*8+4}px;
+        height:${Math.random()*8+4}px;
+        border-radius:${Math.random()>0.5?'50%':'2px'};
+        --fall-dur:${(Math.random()*3+2).toFixed(1)}s;
+        --fall-delay:${(Math.random()*3).toFixed(1)}s;
+      `;
+      cw.appendChild(d);
+    }
+  }
+
+  let isOpen = false;
+
+  function toggleCard() {
+    isOpen = !isOpen;
+    const card = document.getElementById('card');
+    const btn = document.getElementById('btn');
+
+    if (isOpen) {
+      card.classList.add('open');
+      btn.textContent = 'Close Card';
+      // Clear old confetti and spawn new
+      cw.innerHTML = '';
+      spawnConfetti();
+      // Remove after animations
+      setTimeout(() => { cw.innerHTML = ''; }, 6000);
+    } else {
+      card.classList.remove('open');
+      btn.textContent = 'Open Card';
+    }
+  }
+
+  // Also allow clicking the card cover
+  document.getElementById('cover').addEventListener('click', toggleCard);
+</script>
+
+</body>
+</html>
